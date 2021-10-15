@@ -61,3 +61,6 @@ class Board:
             return True
         else:
             return False
+    
+    def prettyPrint(self):
+        print(tabulate.tabulate(self.board))
