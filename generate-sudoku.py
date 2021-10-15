@@ -1,26 +1,14 @@
-#Advaitha S,1st year CSE,PESU-EC
 import random
-
-#========================================================
-# Function checks if the number is in the row
-#========================================================
+from tabulate import tabulate
 
 def checkRow(testVal, row, grid):
     return bool(testVal in grid[row])
-
-#========================================================
-# Function checks if the number is in the column
-#========================================================
 
 def checkCol(testVal, col, grid):
     colList = []
     for i in range(9):
         colList.append(grid[i][col])
     return bool(testVal in colList)
-
-#========================================================
-# Function checks if the number is in the square (3*3)
-#========================================================
 
 def checkSquare(testVal, row, col, grid):
     square = []
@@ -51,9 +39,6 @@ def checkSquare(testVal, row, col, grid):
 
     return bool(testVal in square[0]+square[1]+square[2])
 
-#========================================================
-# Function to check if the grid is filled
-#========================================================
 
 def isGridFilled(grid):
     for r in range(9):
@@ -62,11 +47,8 @@ def isGridFilled(grid):
                 return False
     else:
         return True
-
-#========================================================
-# Function to generate a full sudoku
-#========================================================
-
+        
+        
 def fillGrid(grid, tracker):
  
     values= [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -99,33 +81,10 @@ def fillGrid(grid, tracker):
 
                 break 
     grid[row][col] = 0
-
-
-
-#========================================================
-#Main 
-#========================================================
-
 grid = []
 for i in range(9):
-    #create empty grid
+  
     grid.append([0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 fillGrid(grid, 1)
-
-#========================================================
-#Display generated grid
-#========================================================
-
-for i in range(9):
-    if i%3==0:
-        print("-------------")
-    row=grid[i]
-    for j in range(9):
-        ele=row[j]
-        if j%3==0:
-            print("|",end='')
-        print(ele,end='')
-    print('|')
-print("-------------")
-
+print(tabulate(grid,tablefmt="fancy_grid"))
