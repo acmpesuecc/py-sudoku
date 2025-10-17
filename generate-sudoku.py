@@ -1,5 +1,10 @@
 #Advaitha S,1st year CSE,PESU-EC
 import random
+import tkinter
+
+import tkinter as tk
+r = tk.Tk()
+r.title('SUDOKO')
 
 #========================================================
 # Function checks if the number is in the row
@@ -72,8 +77,8 @@ def fillGrid(grid, tracker):
     values= [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     for cellNo in range(81):
-            row = cellNo // 9
-            col = cellNo % 9
+            row = random.randint(0,8)
+            col = random.randint(0,8)
 
             random.shuffle(values)
             if grid[row][col] == 0:
@@ -90,12 +95,17 @@ def fillGrid(grid, tracker):
                     if r1 == False and r2 == False and r3 == False:
                         #If testVal is unique in its row, column and (3*3) square
                         grid[row][col] = testVal
-
+                        if tracker == 2:
+                            print()
+                            return True
                         if isGridFilled(grid):
                             return True
                         else:
                             if fillGrid(grid, cellNo):
                                return True
+                        if tracker == 2:
+                            print("killed")
+                            return True
 
                 break 
     grid[row][col] = 0
@@ -111,21 +121,41 @@ for i in range(9):
     #create empty grid
     grid.append([0, 0, 0, 0, 0, 0, 0, 0, 0])
 
-fillGrid(grid, 1)
 
 #========================================================
 #Display generated grid
 #========================================================
 
-for i in range(9):
-    if i%3==0:
-        print("-------------")
-    row=grid[i]
-    for j in range(9):
-        ele=row[j]
-        if j%3==0:
-            print("|",end='')
-        print(ele,end='')
-    print('|')
-print("-------------")
+hints = 5
+def draw():
+    height = 0
+    width = 0
 
+    for i in range(9):
+        if i%3==0:
+            print("-------------")
+        row=grid[i]
+        for j in range(9):
+            ele=row[j]
+            if j%3==0:
+                print("|",end='')
+            print(ele,end='')
+            width+=1
+            label = tk.Label(r, text=str(ele))
+            label.grid(row=height,column=width)
+        print('|')
+        height+=1
+        width = 0
+    print("-------------")
+
+draw()
+def hint():
+    print("hint")
+    global hints
+    fillGrid(grid,2)
+    draw()
+btn = tk.Button(r, text = 'HINT', 
+                command = hint) 
+btn.grid(row=10,column=0)
+
+r.mainloop()

@@ -1,5 +1,6 @@
 import random
 from tabulate import tabulate 
+import tkinter
 
 def Row(x, row, grid):
     if x in grid[row]:
