@@ -134,18 +134,42 @@ def draw():
     for i in range(9):
         if i%3==0:
             print("-------------")
+            width = 0
+            height+=1
+            for j in range(0,12):
+                label = tk.Label(r, text='--')
+                width+=1
+                label.grid(row=height,column=width)
+            height+=1
+            width=0
         row=grid[i]
         for j in range(9):
             ele=row[j]
             if j%3==0:
                 print("|",end='')
+                width+=1
+                label = tk.Label(r, text='|')
+                label.grid(row=height,column=width)
             print(ele,end='')
             width+=1
             label = tk.Label(r, text=str(ele))
             label.grid(row=height,column=width)
+
         print('|')
+        width+=1
+        label = tk.Label(r, text='|')
+        label.grid(row=height,column=width)
         height+=1
         width = 0
+        
+        
+    width = 0
+    height+=1
+    for j in range(0,12):
+        label = tk.Label(r, text='--')
+        width+=1
+        label.grid(row=height,column=width)
+
     print("-------------")
 
 draw()
@@ -156,6 +180,6 @@ def hint():
     draw()
 btn = tk.Button(r, text = 'HINT', 
                 command = hint) 
-btn.grid(row=10,column=0)
+btn.grid(row=17,column=0)
 
 r.mainloop()
