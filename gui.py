@@ -31,7 +31,13 @@ class SudokuGUI:
 		self.solve_btn = tk.Button(self.frame, text="Solve", width=8, command=self.solve)
 		self.solve_btn.grid(row=1, column=3)
 		self.clear_btn = tk.Button(self.frame, text="Clear", width=8, command=self.clear)
-		self.clear_btn.grid(row=2, column=1, columnspan=2)
+		self.clear_btn.grid(row=2, column=1)
+		self.hint_btn = tk.Button(self.frame, text="Hint (5)", width=8, command=self.hint)
+		self.hint_btn.grid(row=2, column=2)
+		self.undo_btn = tk.Button(self.frame, text="Undo", width=8, command=self.undo)
+		self.undo_btn.grid(row=2, column=3)
+		self.redo_btn = tk.Button(self.frame, text="Redo", width=8, command=self.redo)
+		self.redo_btn.grid(row=2, column=0)
 		self.selected = None
 		self.timer_running = False
 		self.start_time = None
@@ -39,10 +45,21 @@ class SudokuGUI:
 		self.solution = None
 		self.user_grid = None
 		self.prefilled = None
+		self.move_history = []
+		self.redo_stack = []
+		self.max_history = 50
+		self.hints_left = 5
 		self.draw_grid()
 		self.new_puzzle()
 		self.canvas.bind("<Button-1>", self.cell_click)
 		self.root.bind("<Key>", self.key_press)
+		self.root.bind('<Control-z>', lambda e: self.undo())
+		self.root.bind('<Control-y>', lambda e: self.redo())
+		self.root.bind('h', lambda e: self.hint())
+		self.root.bind('n', lambda e: self.new_puzzle())
+	def update_hint_button(self):
+		self.hint_btn.config(text=f"Hint ({self.hints_left})")
+
 
 	def draw_grid(self):
 		self.canvas.delete("grid")
@@ -75,6 +92,10 @@ class SudokuGUI:
 		self.user_grid = copy.deepcopy(self.puzzle)
 		self.prefilled = [[self.puzzle[r][c] != 0 for c in range(GRID_SIZE)] for r in range(GRID_SIZE)]
 		self.selected = None
+		self.move_history.clear()
+		self.redo_stack.clear()
+		self.hints_left = 5
+		self.update_hint_button()
 		self.start_timer()
 		self.draw_grid()
 		self.draw_numbers()
@@ -107,10 +128,64 @@ class SudokuGUI:
 		r, c = self.selected
 		if self.prefilled[r][c]:
 			return
+		prev_val = self.user_grid[r][c]
 		if event.char in '123456789':
 			self.user_grid[r][c] = int(event.char)
+			self.record_move(r, c, prev_val, int(event.char))
 		elif event.keysym in ('BackSpace', 'Delete', '0'):
 			self.user_grid[r][c] = 0
+			self.record_move(r, c, prev_val, 0)
+		self.draw_numbers()
+
+	def record_move(self, r, c, old, new):
+		if old != new:
+			self.move_history.append((r, c, old, new))
+			if len(self.move_history) > self.max_history:
+				self.move_history.pop(0)
+			self.redo_stack.clear()
+
+	def undo(self):
+		if not self.move_history:
+			print("Undo: move_history empty")
+			return
+		r, c, old, new = self.move_history.pop()
+		self.redo_stack.append((r, c, self.user_grid[r][c], old))
+		print(f"Undo: move {r},{c} from {new} to {old}")
+		print(f"Undo: redo_stack={self.redo_stack}")
+		self.user_grid[r][c] = old
+		self.draw_numbers()
+
+	def redo(self):
+		if not self.redo_stack:
+			print("Redo: redo_stack empty")
+			return
+		r, c, old, new = self.redo_stack.pop()
+		self.move_history.append((r, c, old, new))
+		print(f"Redo: move {r},{c} from {old} to {new}")
+		print(f"Redo: move_history={self.move_history}")
+		self.user_grid[r][c] = new
+		self.draw_numbers()
+
+	def hint(self):
+		if self.hints_left <= 0:
+			messagebox.showinfo("Sudoku", "No hints left!")
+			return
+		empty = [(r, c) for r in range(9) for c in range(9) if self.user_grid[r][c] == 0 and not self.prefilled[r][c]]
+		if not empty:
+			messagebox.showinfo("Sudoku", "No empty cells for hint!")
+			return
+		def possible_vals(r, c):
+			vals = set(range(1, 10))
+			vals -= set(self.user_grid[r])
+			vals -= set(self.user_grid[i][c] for i in range(9))
+			box_r, box_c = 3*(r//3), 3*(c//3)
+			vals -= set(self.user_grid[i][j] for i in range(box_r, box_r+3) for j in range(box_c, box_c+3))
+			return vals
+		best = min(empty, key=lambda rc: len(possible_vals(*rc)))
+		r, c = best
+		self.user_grid[r][c] = self.solution[r][c]
+		self.hints_left -= 1
+		self.update_hint_button()
 		self.draw_numbers()
 
 	def check(self):
